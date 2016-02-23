@@ -8,20 +8,21 @@ use Doctrine\ORM\EntityManagerInterface;
 use Gedmo\Blameable\BlameableListener;
 use Illuminate\Contracts\Auth\Guard;
 use LaravelDoctrine\Extensions\GedmoExtension;
+use LaravelDoctrine\Extensions\ResolveUserDecorator;
 
 class BlameableExtension extends GedmoExtension
 {
     /**
      * @var Guard
      */
-    protected $guard;
+    protected $auth;
 
     /**
-     * @param Guard $guard
+     * @param Guard $auth
      */
-    public function __construct(Guard $guard)
+    public function __construct(Guard $auth)
     {
-        $this->guard = $guard;
+        $this->auth = $auth;
     }
 
     /**
@@ -31,11 +32,11 @@ class BlameableExtension extends GedmoExtension
      */
     public function addSubscribers(EventManager $manager, EntityManagerInterface $em, Reader $reader = null)
     {
-        $subscriber = new BlameableListener();
-
-        if ($this->guard->check()) {
-            $subscriber->setUserValue($this->guard->user());
-        }
+        $subscriber = new ResolveUserDecorator(
+            new BlameableListener(),
+            $this->auth,
+            'setUserValue'
+        );
 
         $this->addSubscriber($subscriber, $manager, $reader);
     }

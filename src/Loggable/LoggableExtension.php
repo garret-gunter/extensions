@@ -8,20 +8,21 @@ use Doctrine\ORM\EntityManagerInterface;
 use Gedmo\Loggable\LoggableListener;
 use Illuminate\Contracts\Auth\Guard;
 use LaravelDoctrine\Extensions\GedmoExtension;
+use LaravelDoctrine\Extensions\ResolveUserDecorator;
 
 class LoggableExtension extends GedmoExtension
 {
     /**
      * @var Guard
      */
-    protected $guard;
+    protected $auth;
 
     /**
-     * @param Guard $guard
+     * @param Guard $auth
      */
-    public function __construct(Guard $guard)
+    public function __construct(Guard $auth)
     {
-        $this->guard = $guard;
+        $this->auth = $auth;
     }
 
     /**
@@ -31,13 +32,11 @@ class LoggableExtension extends GedmoExtension
      */
     public function addSubscribers(EventManager $manager, EntityManagerInterface $em, Reader $reader = null)
     {
-        $subscriber = new LoggableListener;
-
-        if ($this->guard->check()) {
-            $subscriber->setUsername(
-                $this->guard->user()
-            );
-        }
+        $subscriber = new ResolveUserDecorator(
+            new LoggableListener,
+            $this->auth,
+            'setUsername'
+        );
 
         $this->addSubscriber($subscriber, $manager, $reader);
     }
