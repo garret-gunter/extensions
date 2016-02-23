@@ -9,6 +9,7 @@ use Gedmo\Blameable\BlameableListener;
 use Illuminate\Contracts\Auth\Guard;
 use LaravelDoctrine\Extensions\GedmoExtension;
 use LaravelDoctrine\Extensions\ResolveUserDecorator;
+use LaravelDoctrine\Fluent\Extensions\Gedmo\Blameable;
 
 class BlameableExtension extends GedmoExtension
 {
@@ -39,6 +40,10 @@ class BlameableExtension extends GedmoExtension
         );
 
         $this->addSubscriber($subscriber, $manager, $reader);
+
+        if (class_exists('LaravelDoctrine\Fluent\Extensions\Gedmo\Blameable')) {
+            Blameable::enable();
+        }
     }
 
     /**
